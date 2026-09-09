@@ -11,6 +11,7 @@ type Selection = { kind: 'country' | 'prefecture'; code: string } | null
 
 export function MapExperience({ categories, trips, loading }: { categories: Category[]; trips: Trip[]; loading: boolean }) {
   const [mode, setMode] = useState<'world' | 'japan'>('world')
+  const [focusJapan, setFocusJapan] = useState(false)
   const [isModeTransitioning, setIsModeTransitioning] = useState(false)
   const maxYear = Math.max(new Date().getFullYear(), ...trips.map((trip) => trip.date.startYear))
   const minYear = trips.length ? Math.min(...trips.map((trip) => trip.date.startYear)) : maxYear
@@ -43,11 +44,17 @@ export function MapExperience({ categories, trips, loading }: { categories: Cate
   }
 
   function changeMode(nextMode: 'world' | 'japan') {
-    if (nextMode === mode || isModeTransitioning) return
+    if ((nextMode === 'japan') === focusJapan || isModeTransitioning) return
     setSelection(null)
     setIsModeTransitioning(true)
-    setMode(nextMode)
-    window.setTimeout(() => setIsModeTransitioning(false), 820)
+    if (nextMode === 'japan') {
+      setFocusJapan(true)
+      window.setTimeout(() => setMode('japan'), 620)
+    } else {
+      setMode('world')
+      setFocusJapan(false)
+    }
+    window.setTimeout(() => setIsModeTransitioning(false), 900)
   }
 
   useEffect(() => {
@@ -86,7 +93,7 @@ export function MapExperience({ categories, trips, loading }: { categories: Cate
                     activeCategories={activeCategories}
                     categoryColors={categoryColors}
                     onSelectCountry={(code) => setSelection({ kind: 'country', code })}
-                    focusJapan={mode === 'japan'}
+                    focusJapan={focusJapan}
                     animateTransform={isModeTransitioning}
                   />
                 </div>
@@ -104,8 +111,8 @@ export function MapExperience({ categories, trips, loading }: { categories: Cate
               <strong>{selectedYear}</strong>
             </div>
             <div className="mode-switch" role="group" aria-label="Map mode">
-              <button className={mode === 'world' ? 'is-active' : ''} onClick={() => changeMode('world')} disabled={isModeTransitioning}>WORLD</button>
-              <button className={mode === 'japan' ? 'is-active' : ''} onClick={() => changeMode('japan')} disabled={isModeTransitioning}>JAPAN</button>
+              <button className={!focusJapan ? 'is-active' : ''} onClick={() => changeMode('world')} disabled={isModeTransitioning}>WORLD</button>
+              <button className={focusJapan ? 'is-active' : ''} onClick={() => changeMode('japan')} disabled={isModeTransitioning}>JAPAN</button>
             </div>
           </div>
         </div>

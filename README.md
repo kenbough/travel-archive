@@ -88,11 +88,11 @@ Vite builds into `dist/`; the included workflow uploads that directory to Pages.
 
 ### WORLD
 
-`world-atlas` provides Natural Earth country geometry as TopoJSON. Country records are matched to ISO 3166-1 alpha-3 codes.
+`world-atlas` provides Natural Earth country geometry as TopoJSON. Country records are matched to ISO 3166-1 alpha-3 codes and rendered on a draggable, zoomable orthographic globe.
 
 ### JAPAN
 
-The prototype currently loads Geolonia's `prefectures.geojson` in the browser. Before a public production launch, pin/vendor the chosen prefecture dataset into `public/data/` and include the required attribution for that source.
+The simplified prefecture TopoJSON from `jpn-atlas@1.0.2` is vendored in `public/data/`, so the map renders without a cross-origin runtime dependency. See `public/data/README.md` and the included license.
 
 ## Current form conventions
 
