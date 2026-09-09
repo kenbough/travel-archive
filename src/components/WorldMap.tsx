@@ -34,13 +34,13 @@ export function WorldMap({ trips, activeCategories, categoryColors, onSelectCoun
 
   return (
     <svg className="map-svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label="World travel map">
-      {countries.map((country) => {
-        const numeric = String(country.id).padStart(3, '0')
-        const alpha3 = numericToAlpha3[numeric]
+      {countries.map((country, index) => {
+        const numeric = country.id == null ? null : String(country.id).padStart(3, '0')
+        const alpha3 = numeric ? numericToAlpha3[numeric] : undefined
         const isVisited = alpha3 ? visited.has(alpha3) : false
         return (
           <path
-            key={numeric}
+            key={alpha3 ?? country.properties?.name ?? `region-${index}`}
             d={path(country) ?? undefined}
             className={isVisited ? 'map-region map-region--visited' : 'map-region'}
             fill={isVisited ? (oneCategory ? categoryColors[oneCategory] : VISITED) : UNVISITED}
@@ -50,7 +50,7 @@ export function WorldMap({ trips, activeCategories, categoryColors, onSelectCoun
               if (isVisited && alpha3 && (event.key === 'Enter' || event.key === ' ')) onSelectCountry(alpha3)
             }}
           >
-            <title>{alpha3 ? countryDisplayName(alpha3) : numeric}</title>
+            <title>{alpha3 ? countryDisplayName(alpha3) : (country.properties?.name ?? 'Unknown region')}</title>
           </path>
         )
       })}
