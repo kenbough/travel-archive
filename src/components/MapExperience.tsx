@@ -11,6 +11,7 @@ type Selection = { kind: 'country' | 'prefecture'; code: string } | null
 
 export function MapExperience({ categories, trips, loading }: { categories: Category[]; trips: Trip[]; loading: boolean }) {
   const [mode, setMode] = useState<'world' | 'japan'>('world')
+  const [isModeTransitioning, setIsModeTransitioning] = useState(false)
   const maxYear = Math.max(new Date().getFullYear(), ...trips.map((trip) => trip.date.startYear))
   const minYear = trips.length ? Math.min(...trips.map((trip) => trip.date.startYear)) : maxYear
   const [selectedYear, setSelectedYear] = useState(maxYear)
@@ -41,6 +42,14 @@ export function MapExperience({ categories, trips, loading }: { categories: Cate
     setSelection(null)
   }
 
+  function changeMode(nextMode: 'world' | 'japan') {
+    if (nextMode === mode || isModeTransitioning) return
+    setSelection(null)
+    setIsModeTransitioning(true)
+    setMode(nextMode)
+    window.setTimeout(() => setIsModeTransitioning(false), 820)
+  }
+
   useEffect(() => {
     if (categories.length > 0) {
       setActiveCategories((current) => current.size ? current : new Set(categories.map((c) => c.id)))
@@ -69,10 +78,22 @@ export function MapExperience({ categories, trips, loading }: { categories: Cate
 
         <div className="map-stage">
           <div className="map-canvas">
-            {loading ? <div className="map-loading">Loading archive…</div> : mode === 'world' ? (
-              <WorldMap trips={visibleTrips} activeCategories={activeCategories} categoryColors={categoryColors} onSelectCountry={(code) => setSelection({ kind: 'country', code })} />
-            ) : (
-              <JapanMap trips={visibleTrips} activeCategories={activeCategories} categoryColors={categoryColors} onSelectPrefecture={(code) => setSelection({ kind: 'prefecture', code })} />
+            {loading ? <div className="map-loading">Loading archive…</div> : (
+              <div className={`map-scene map-scene--${mode}${isModeTransitioning ? ' is-transitioning' : ''}`}>
+                <div className="map-layer map-layer--world">
+                  <WorldMap
+                    trips={visibleTrips}
+                    activeCategories={activeCategories}
+                    categoryColors={categoryColors}
+                    onSelectCountry={(code) => setSelection({ kind: 'country', code })}
+                    focusJapan={mode === 'japan'}
+                    animateTransform={isModeTransitioning}
+                  />
+                </div>
+                <div className="map-layer map-layer--japan">
+                  <JapanMap trips={visibleTrips} activeCategories={activeCategories} categoryColors={categoryColors} onSelectPrefecture={(code) => setSelection({ kind: 'prefecture', code })} />
+                </div>
+              </div>
             )}
           </div>
           <div className="map-credit">Map data: Natural Earth / Geolonia</div>
@@ -83,8 +104,8 @@ export function MapExperience({ categories, trips, loading }: { categories: Cate
               <strong>{selectedYear}</strong>
             </div>
             <div className="mode-switch" role="group" aria-label="Map mode">
-              <button className={mode === 'world' ? 'is-active' : ''} onClick={() => { setMode('world'); setSelection(null) }}>WORLD</button>
-              <button className={mode === 'japan' ? 'is-active' : ''} onClick={() => { setMode('japan'); setSelection(null) }}>JAPAN</button>
+              <button className={mode === 'world' ? 'is-active' : ''} onClick={() => changeMode('world')} disabled={isModeTransitioning}>WORLD</button>
+              <button className={mode === 'japan' ? 'is-active' : ''} onClick={() => changeMode('japan')} disabled={isModeTransitioning}>JAPAN</button>
             </div>
           </div>
         </div>
